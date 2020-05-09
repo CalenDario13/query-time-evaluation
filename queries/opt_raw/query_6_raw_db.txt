@@ -1,0 +1,12 @@
+SELECT s.seller_id, 
+	CASE
+	 WHEN SUM(p.product_description_lenght) IS NULL AND SUM(p.product_photos_qty) IS NULL THEN -1000
+	 WHEN SUM(p.product_description_lenght) IS NULL THEN (-1000 + 1000*SUM(p.product_photos_qty))/count(*)
+	 WHEN SUM(p.product_photos_qty) IS NULL THEN (SUM(p.product_description_lenght)-1000)/count(*)
+	 ELSE (SUM(p.product_description_lenght) + 1000*SUM(p.product_photos_qty))/count(*)
+	END AS "score"
+FROM sellers s, items i, products p
+WHERE s.seller_id=i.seller_id
+AND p.product_id=i.product_id
+GROUP BY(s.seller_id)
+ORDER BY "score" DESC;

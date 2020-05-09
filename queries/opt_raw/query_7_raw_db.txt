@@ -1,0 +1,22 @@
+SELECT p17.product_id, ROUND(price_17,2) as avg_prive_2017, ROUND(price_18, 2) as avg_price_2018,
+	ROUND((price_18 - price_17),2) as variation_amount,
+	CONCAT(CAST(ROUND((price_18 - price_17)/price_17*100, 2) AS VARCHAR), ' %') as percentage_variation,
+	CASE WHEN price_17 < price_18 THEN 'up'
+		WHEN price_17 > price_18  THEN 'down' 
+		ELSE '-' END AS price_behaviour
+FROM
+		(SELECT product_id, AVG(price) as price_17
+		 FROM items i
+		 LEFT JOIN orders o ON i.order_id = o.order_id
+		 WHERE EXTRACT(year FROM o.order_purchase_timestamp) = 2017
+		 GROUP BY i.product_id, i.price) p17
+		 
+	INNER JOIN 
+
+		(SELECT product_id, AVG(price) as price_18
+		 FROM items i
+			LEFT JOIN orders o ON i.order_id = o.order_id
+		 WHERE EXTRACT(year FROM o.order_purchase_timestamp) = 2018
+		 GROUP BY i.product_id, i.price) p18
+
+	ON p17.product_id = p18.product_id;

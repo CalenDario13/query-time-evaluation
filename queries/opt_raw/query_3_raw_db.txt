@@ -1,0 +1,16 @@
+SELECT p.product_id, product_category_name, COUNT(*) as tot_sales, ROUND(AVG(score),2) as avg_score
+FROM orders o
+LEFT JOIN (SELECT order_id, ROUND(AVG(review_score),1) AS score
+	       FROM reviews
+	       GROUP BY order_id) r ON o.order_id = r.order_id
+LEFT JOIN items i ON i.order_id = r.order_id
+LEFT JOIN products p ON p.product_id = i.product_id
+GROUP BY p.product_id, product_category_name
+HAVING(product_category_name, COUNT(*)) IN (SELECT product_category_name, MAX(n_prod_sold) AS max_amt_sold
+											FROM (SELECT p.product_id, product_category_name, count(*) AS n_prod_sold
+												  FROM orders o LEFT JOIN items i ON o.order_id = i.order_id
+												  LEFT JOIN products p ON p.product_id = i.product_id
+												  GROUP BY p.product_id, product_category_name) foo 
+											WHERE foo.product_category_name IS NOT NULL
+											GROUP BY product_category_name)
+ORDER BY product_category_name;
