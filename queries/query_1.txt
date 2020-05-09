@@ -1,0 +1,23 @@
+SELECT gb_customers.customer_unique_id, unique_geo_customers.geolocation_state, unique_geo_customers.geolocation_city, 
+gb_customers.number_of_orders,gb_customers.tot_spending
+FROM 
+	   
+	   (SELECT customer_unique_id, COUNT(*) as number_of_orders, SUM(p.payment_value) as tot_spending
+		FROM customers c
+			LEFT JOIN orders o ON c.customer_id = o.customer_id
+			LEFT JOIN (SELECT order_id, SUM(payment_value) as payment_value FROM payments GROUP BY order_id) p
+			ON o.order_id = p.order_id
+		GROUP BY customer_unique_id) gb_customers
+		
+	LEFT JOIN
+		
+		
+		(SELECT DISTINCT ON(customer_unique_id) 
+		 	customer_unique_id, geolocation_city, geolocation_state
+		 FROM customers c
+		 	LEFT JOIN geolocation g 
+		 		ON c.customer_zip_code_prefix = g.geolocation_zip_code_prefix) unique_geo_customers
+	ON gb_customers.customer_unique_id = unique_geo_customers.customer_unique_id
+
+ORDER BY number_of_orders DESC, tot_spending DESC
+LIMIT 10;
