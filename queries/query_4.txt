@@ -1,0 +1,11 @@
+SELECT pr.product_category_name, COUNT(i.product_id) as tot_product_sold, 
+	ROUND(AVG(i.price)) AS avg_price, ROUND(AVG(py.payment_installments), 1) as avg_installments,
+	ROUND(AVG(i.price)/AVG(py.payment_installments)) as avg_cost_per_installment,
+	ROUND(AVG(freight_value)) as avg_shipping_cost,
+	ROUND(AVG(d.shipment_days)) as avg_days_of_delivery
+FROM items i
+	LEFT JOIN products pr ON i.product_id = pr.product_id
+	RIGHT JOIN payments py ON i.order_id = py.order_id
+	LEFT JOIN (SELECT o.order_id, EXTRACT(DAY FROM o.order_delivered_customer_date - o.order_delivered_carrier_date) as shipment_days 
+			   FROM orders o) d ON i.order_id = d.order_id
+GROUP BY pr.product_category_name;

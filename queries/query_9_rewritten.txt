@@ -1,0 +1,9 @@
+SELECT DISTINCT ON (geolocation_state) *
+FROM   (SELECT geolocation_state,product_category_name,  COUNT(*) AS n_sales, SUM(i.price) as tot_spending
+		FROM orders o 
+		INNER JOIN customers c ON o.customer_id=c.customer_id
+		INNER JOIN geolocation g ON c.customer_zip_code_prefix = g.geolocation_zip_code_prefix
+		INNER JOIN items i ON i.order_id = o.order_id
+		INNER JOIN products p ON p.product_id = i.product_id
+		GROUP BY product_category_name, geolocation_state) foo
+ORDER BY geolocation_state, n_sales DESC;

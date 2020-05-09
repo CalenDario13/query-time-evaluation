@@ -1,0 +1,9 @@
+SELECT s.seller_id, g.geolocation_city, ROUND(AVG(product_weight_g),2) AS "average_weight (g)",  
+	   ROUND(AVG(i.freight_value/price),2) AS percecentage_delivery_cost
+FROM sellers s
+	LEFT JOIN items i ON s.seller_id = i.seller_id
+	LEFT JOIN geolocation g ON s.seller_zip_code_prefix = g.geolocation_zip_code_prefix
+	LEFT JOIN products p ON i.product_id = p.product_id
+WHERE i.price > 7 
+GROUP BY (s.seller_id, g.geolocation_city)
+ORDER BY percecentage_delivery_cost DESC;

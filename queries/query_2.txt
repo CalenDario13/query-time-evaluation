@@ -1,0 +1,11 @@
+SELECT i.seller_id, ROUND(AVG(score),2) AS avg_score, COUNT(*) AS num_prod_sold, ROUND(SUM(i.price),0) AS income
+FROM orders o 
+LEFT JOIN (SELECT order_id, AVG(review_score) AS score
+		    FROM reviews
+		    GROUP BY order_id) r ON o.order_id=r.order_id
+LEFT JOIN items i ON i.order_id = o.order_id
+LEFT JOIN products p ON p.product_id = i.product_id
+WHERE seller_id IS NOT NULL
+GROUP BY i.seller_id
+ORDER BY (0.10*LOG(SUM(i.price)) + 0.30*LOG(COUNT(*)+1) + 0.60*AVG(score)) DESC
+LIMIT 10;

@@ -1,0 +1,22 @@
+SELECT i.customer_unique_id,mi.max_installments, i.price
+FROM
+	(SELECT customer_unique_id, max_installments as installments, price
+	FROM (SELECT order_id, MAX(payment_installments) as max_installments, SUM(payment_value) as price 
+	  	FROM payments WHERE payment_installments > 12 GROUP BY order_id) p
+	  	LEFT JOIN orders o ON p.order_id = o.order_id
+	  	LEFT JOIN customers c ON o.customer_id = c.customer_id
+	GROUP BY customer_unique_id, max_installments, price) i
+
+INNER JOIN
+
+	(SELECT customer_unique_id, MAX(max_installments) as max_installments
+	FROM (SELECT order_id, MAX(payment_installments) as max_installments, SUM(payment_value) as price 
+		  FROM payments WHERE payment_installments > 12 GROUP BY order_id) p
+		  LEFT JOIN orders o ON p.order_id = o.order_id
+		  LEFT JOIN customers c ON o.customer_id = c.customer_id
+	GROUP BY customer_unique_id) mi
+
+ON (mi.customer_unique_id, mi.max_installments) = (i.customer_unique_id, i.installments)
+
+GROUP BY i.customer_unique_id,  mi.max_installments, i.price
+ORDER BY max_installments DESC;

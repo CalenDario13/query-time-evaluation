@@ -1,0 +1,20 @@
+SELECT gcsp.geolocation_state, gcsp.product_category_name, gcsp.n_sales, gcsp.tot_spending
+FROM
+	(SELECT g.geolocation_state, p.product_category_name, COUNT(*) as n_sales, SUM(i.price) as tot_spending
+	FROM orders o
+		INNER JOIN customers c ON c.customer_id = o.customer_id
+	 	INNeR JOIN geolocation g ON g.geolocation_zip_code_prefix = c.customer_zip_code_prefix
+		INNER JOIN items i ON i.order_id = o.order_id
+		INNER JOIN products p ON i.product_id = p.product_id
+	GROUP BY g.geolocation_state, p.product_category_name) gcsp
+WHERE (gcsp.geolocation_state, n_sales) IN (SELECT gcsp1.geolocation_state, MAX(n_sales)
+										  FROM(SELECT g.geolocation_state, p.product_category_name, COUNT(*) as n_sales, SUM(i.price) as tot_spending
+												FROM orders o
+													INNER JOIN customers c ON c.customer_id = o.customer_id
+													INNeR JOIN geolocation g ON g.geolocation_zip_code_prefix = c.customer_zip_code_prefix
+													INNER JOIN items i ON i.order_id = o.order_id
+													INNER JOIN products p ON i.product_id = p.product_id
+												GROUP BY g.geolocation_state, p.product_category_name) gcsp1
+												GROUP BY gcsp1.geolocation_state)
+
+ORDER BY gcsp.geolocation_state;

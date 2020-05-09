@@ -1,0 +1,12 @@
+SELECT geolocation_state, ROUND(AVG(freight_value),2) AS avg_freight_price,  
+       ROUND(CAST(AVG(EXTRACT(DAY FROM order_delivered_customer_date - order_delivered_carrier_date)) AS numeric),1) AS avg_delivery_time, 
+	   ROUND(AVG(EXTRACT(DAY FROM order_estimated_delivery_date - order_delivered_customer_date)::numeric),1) AS avg_estimation_error,
+	   ROUND(AVG(review_score), 2)
+FROM customers c
+	LEFT JOIN orders o ON o.customer_id = c.customer_id
+	RIGHT JOIN geolocation g ON g.geolocation_zip_code_prefix = c.customer_zip_code_prefix
+	LEFT JOIN reviews r ON r.order_id = o.order_id 
+	LEFT JOIN items i ON i.order_id = o.order_id
+WHERE o.order_status = 'delivered'
+GROUP BY geolocation_state
+ORDER BY avg_delivery_time;
